@@ -107,8 +107,8 @@ def predict():
 train(N_EPOCHS)
 predict()
 
-plt.plot(list(enumerate(range(len(rmse_a)))),rmse_a)
-plt.show()
 print (rmse_a[-1])
 print (pred_list[-1])
+plt.plot(list(enumerate(range(len(rmse_a)))),rmse_a)
+plt.show()
 #print (len(pred_list),len(pred_list[0])) # EPOCH, 40000

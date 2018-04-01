@@ -7,10 +7,14 @@ num_input = 3
 num_output = 3
 num_hidden1 = 16
 num_hidden2 = 16
-k_folds = 10
-N_EPOCHS = 1000
+k_folds = 5
+N_EPOCHS = 5000
 
-session = tf.Session()
+CROSS_VALIDATION_ACTIVE = True
+
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+
+session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
 X = tf.placeholder(tf.float32, shape=[None, num_input], name='X')
 y = tf.placeholder(tf.float32, shape=[None, num_output], name='y')
@@ -93,29 +97,46 @@ for epoch in range(N_EPOCHS):
     print ("EPOCH :", epoch+1)
     
     cur_st = 0
-    while True:
-        VALIDATION_L = cur_st
-        VALIDATION_R = min(cur_st + FOLDS_SIZE,len(X_in))
-        #print (VALIDATION_L, VALIDATION_R)
-        #print (type(X_in))
-        X_train_l = X_in[:VALIDATION_L] + X_in[VALIDATION_R:]
-        y_train_l = y_in[:VALIDATION_L] + y_in[VALIDATION_R:]
-        X_test_l = X_in[VALIDATION_L:VALIDATION_R]
-        y_test_l = y_in[VALIDATION_L:VALIDATION_R]
-        #print ("-->",len(X_train),len(X_test) )
+    if CROSS_VALIDATION_ACTIVE :
+        np.random.shuffle(X_in)
+        np.random.shuffle(y_in)
+        while True:
+            VALIDATION_L = cur_st
+            VALIDATION_R = min(cur_st + FOLDS_SIZE,len(X_in))
+            #print (VALIDATION_L, VALIDATION_R)
+            #print (type(X_in))
+            X_train_l = X_in[:VALIDATION_L] + X_in[VALIDATION_R:]
+            y_train_l = y_in[:VALIDATION_L] + y_in[VALIDATION_R:]
+            X_test_l = X_in[VALIDATION_L:VALIDATION_R]
+            y_test_l = y_in[VALIDATION_L:VALIDATION_R]
+            #print ("-->",len(X_train),len(X_test) )
 
-        X_train = np.array(X_train_l)
-        y_train = np.array(y_train_l)
-        X_test = np.array(X_test_l)
-        y_test = np.array(y_test_l)
+            X_train = np.array(X_train_l)
+            y_train = np.array(y_train_l)
+            X_test = np.array(X_test_l)
+            y_test = np.array(y_test_l)
 
+            train()
+            predict()
+
+            cur_st += FOLDS_SIZE
+            if cur_st >= len(X_in):
+                break
+    else :
+        VALIDATION_NUM = (int) (0.2*len(X_in))
+        print (VALIDATION_NUM)
+        X_train = X_in[:VALIDATION_NUM]
+        y_train = y_in[:VALIDATION_NUM]
+        X_test = X_in[VALIDATION_NUM:]
+        y_test = y_in[VALIDATION_NUM:]
         train()
         predict()
 
-        cur_st += FOLDS_SIZE
-        if cur_st >= len(X_in):
-            break
-
+print (rmse_a[-1])
+print (pred_list[-1])
+plt.plot(list(enumerate(range(len(rmse_a)))),rmse_a)
+#plt.plot(list(enumerate(range(len(pred_list)))),pred_list)
+plt.show()
 '''
 def cross_val(k, _X, _y):
     print (_X)
