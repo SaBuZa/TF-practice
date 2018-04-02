@@ -7,8 +7,8 @@ num_input = 3
 num_output = 3
 num_hidden1 = 16
 num_hidden2 = 16
-k_folds = 5
-N_EPOCHS = 5000
+k_folds = 10
+N_EPOCHS = 1000
 
 CROSS_VALIDATION_ACTIVE = True
 
@@ -23,14 +23,22 @@ y = tf.placeholder(tf.float32, shape=[None, num_output], name='y')
 data_csv = pd.read_csv('./data/data.csv')
 dataX = data_csv[['in1','in2','in3']]
 datay = data_csv[['out1','out2','out3']]
+data = data_csv[['in1','in2','in3','out1','out2','out3']]
+X_in = []
+y_in = []
 
-X_in_df = dataX.values
-y_in_df = datay.values
-X_in = X_in_df.tolist()
-y_in = y_in_df.tolist()
+def shuffle_data():
+    global data,dataX,datay,X_in,y_in
+    data = data.sample(frac=1).reset_index(drop=True)
+    dataX = data[['in1','in2','in3']]
+    datay = data[['out1','out2','out3']]
 
-#print (X_in)
-#print (len(X_in))
+    X_in_df = dataX.values
+    y_in_df = datay.values
+    X_in = X_in_df.tolist()
+    y_in = y_in_df.tolist()
+
+shuffle_data()
 
 FOLDS_SIZE = len(X_in) // k_folds
 
@@ -98,8 +106,7 @@ for epoch in range(N_EPOCHS):
     
     cur_st = 0
     if CROSS_VALIDATION_ACTIVE :
-        np.random.shuffle(X_in)
-        np.random.shuffle(y_in)
+        shuffle_data()
         while True:
             VALIDATION_L = cur_st
             VALIDATION_R = min(cur_st + FOLDS_SIZE,len(X_in))

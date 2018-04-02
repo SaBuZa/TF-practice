@@ -13,7 +13,10 @@ epoch = 0
 train_rmse_list = []
 test_rmse_list = []
 
-session = tf.Session()
+
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.5)
+
+session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
 x = tf.placeholder(tf.float32, shape=[None, num_input], name='x')
 
